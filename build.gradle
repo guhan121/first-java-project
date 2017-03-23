@@ -1,0 +1,43 @@
+apply plugin: 'java'
+ 
+repositories {
+    mavenCentral()
+    jcenter()
+}
+ 
+dependencies {
+    compile 'log4j:log4j:1.2.17'
+		//https://mvnrepository.com/artifact/org.hamcrest/hamcrest-all
+	testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
+	//testCompile group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3'
+    testCompile 'junit:junit:4.11'
+	//testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
+
+
+}
+ 
+jar {
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    manifest {
+        attributes 'Main-Class': 'net.petrikainulainen.gradle.HelloWorld'
+    }
+}
+
+
+class HelloWorldTask extends DefaultTask {
+    @Optional
+    String message = 'I am davenkin'
+
+    @TaskAction
+    def hello(){
+        println "hello world $message"
+    }
+}
+
+task hello(type:HelloWorldTask)
+
+
+task hello1(type:HelloWorldTask){
+   message ="I am a programmer"
+}
+
