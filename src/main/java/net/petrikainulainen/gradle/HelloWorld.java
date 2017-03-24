@@ -10,6 +10,7 @@ public class HelloWorld {
         MessageService messageService = new MessageService();
  
         String message = messageService.getMessage();
+		System.out.println("Hello World!");
         LOGGER.info("Received message: " + message);
     }
 }

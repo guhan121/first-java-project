@@ -1,28 +1,141 @@
-apply plugin: 'java'
+// Application插件是一种Gradle插件，让我们可以运行、安装应用程序并用非“fat jar”方式创建二进制发布版本。
+// Application插件在项目中添加了5个任务：
+
+// run任务用以启动应用程序。
+// startScripts任务会在build/scripts目录中创建启动脚本，这个任务所创建的启动脚本适用于Windows和*nix操作系统。
+// installApp任务会在build/install/[project name]目录中安装应用程序。
+// distZip任务用以创建二进制发布并将其打包为一个zip文件。可以在build/distributions目录下找到。
+// distTar任务用以创建二进制发布并将其打包为一个tar文件。可以在build/distributions目录下找到。
+// gradle distZip 打包生成application
+// 如果将application插件创建的二进制文件解压缩，可以得到以下目录结构：
+
+// bin目录：包括启动脚本。
+// lib目录：包括应用程序的jar文件以及它的依赖。
+apply plugin: 'application'
+
+apply plugin: 'java'  //创建了一个Java项目
+
+// 在根项目的build.gradle文件中移除了重复配置后，代码如下：
+subprojects {
+    apply plugin: 'java'  //子项目都是java项目
  
-repositories {
-    mavenCentral()
-    jcenter()
+    repositories {
+        mavenCentral()
+    }
+
+// 输出情况 gradle projects
+// :projects
+ 
+// ------------------------------------------------------------
+// Root project
+// ------------------------------------------------------------
+ 
+// Root project 'multi-project-build'
+// +--- Project ':app'
+// --- Project ':core'
+ 
+// To see a list of the tasks of a project, run gradle <project-path>:tasks
+// For example, try running gradle :app:tasks
+ 
+// BUILD SUCCESSFUL
+
 }
  
+/*
+src/main/java目录包含了项目的源代码。
+src/main/resources目录包含了项目的资源（如属性文件）。
+src/test/java目录包含了测试类。
+src/test/resources目录包含了测试资源。所有我们构建生成的文件都会在build目录下被创建，这个目录涵盖了以下的子目录，这些子目录我们会在这篇教程中提到，另外还有一些子目录我们会放在以后讲解。
+classes目录包含编译过的.class文件。
+libs目录包含构建生成的jar或war文件。
+*/ 
+
+
+/* 默认任务
+assemble任务会编译程序中的源代码，并打包生成Jar文件，这个任务不执行单元测试。
+build任务会执行一个完整的项目构建。
+clean任务会删除构建目录。
+compileJava任务会编译程序中的源代码。
+gradle tasks 查询任务
+*/
+
+/*
+assemble任务仅仅执行项目打包所必须的任务集。
+build任务执行项目打包所必须的任务集，以及执行自动化测试。
+这两个命令都会在build/libs目录中创建一个file-java-project.jar文件。
+默认创建的Jar文件名称是由这个模版决定的：[projectname].jar，
+此外，项目的默认名称和其所处的目录名称是一致的。
+因此如果你的项目目录名称是first-java-project，
+那么创建的Jar文件名称就是first-java-project.jar。
+
+如果build因为测试用例问题导致编译不过，那么先用assemble编译,可使用下面的命令运行整包
+java -jar build/libs/first-java-project.jar
+*/
+repositories {
+	maven { url 'http://maven.aliyun.com/mvn/repository/' } //阿里云仓库
+    //mavenCentral() 
+	//mavenLocal()别名，表示依赖是从本地的Maven仓库中获取的。
+    //jcenter() //使用https访问
+	jcenter { url "http://jcenter.bintray.com/"} 
+	/*
+	ivy {
+        url "http://ivy.petrikainulainen.net/repo"
+		url "../ivy-repo" //本地仓库
+    }
+	*/
+}
+/*
+当项目的源代码被编译时，compile配置项中的依赖是必须的。
+runtime配置项中包含的依赖在运行时是必须的。
+testCompile配置项中包含的依赖在编译项目的测试代码时是必须的。
+testRuntime配置项中包含的依赖在运行测试代码时是必须的。
+archives配置项中包含项目生成的文件（如Jar文件）。
+default配置项中包含运行时必须的依赖。
+*/
+/*
+最普遍的依赖称为外部依赖，这些依赖存放在外部仓库中。一个外部依赖可以由以下属性指定：
+
+group属性指定依赖的分组（在Maven中，就是groupId）。
+name属性指定依赖的名称（在Maven中，就是artifactId）。
+version属性指定外部依赖的版本（在Maven中，就是version）。
+*/
 dependencies {
     compile 'log4j:log4j:1.2.17'
 		//https://mvnrepository.com/artifact/org.hamcrest/hamcrest-all
 	testCompile group: 'org.hamcrest', name: 'hamcrest-all', version: '1.3'
 	//testCompile group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3'
-    testCompile 'junit:junit:4.11'
+    testCompile 'junit:junit:4.11'  //快捷方式[group]:[name]:[version]
 	//testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3'
-
-
+    /* 我们也可以在同一个配置项中加入多个依赖，传统的方式如下：
+	compile (
+        [group: 'foo', name: 'foo', version: '0.1'],
+        [group: 'bar', name: 'bar', version: '0.1']
+    )
+    快捷方式
+     compile 'foo:foo:0.1', 'bar:bar:0.1'
+    */
 }
- 
+//如果没有配置主类manifest，运行时提示
+//No main manifest attribute, in first-java-project.jar
 jar {
+
+    //from 打包命令 不打包本例中会出现 Log4j的依赖在classpath中没有找到。
+    //解决这个问题最简单的方式是创建一个所谓的“胖”Jar文件，即把所有程序运行所需的依赖都打包到Jar文件中去。
+
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+
+    /*
+    Java插件在我们的项目中加入了一个Jar任务，每一个Jar对象都一个manifest属性，这个属性是Manifest的一个实例。
+    */
     manifest {
+		//我们可以使用一个包含键值对的map结构指定加入到manifest文件的属性集。
+		//我们能够通过设置Main-Class属性的值，指定我们程序的入口点。
+		//（JavaSE教程提供了关于manifest文件的更多信息。）
         attributes 'Main-Class': 'net.petrikainulainen.gradle.HelloWorld'
     }
 }
 
+mainClassName = 'net.petrikainulainen.gradle.HelloWorld'
 
 class HelloWorldTask extends DefaultTask {
     @Optional
@@ -40,4 +153,35 @@ task hello(type:HelloWorldTask)
 task hello1(type:HelloWorldTask){
    message ="I am a programmer"
 }
+
+// 在二进制发布版本中添加应用程序许可证
+// 创建一个新的Copy任务，名为copyLicense。
+// 使用CopySpec接口中的from()方法配置源文件，将“LICENSE”作为参数调用。
+// 使用CopySpec接口中into()方法配置target目录，将$buildDir属性作为参数调用。
+
+task copyLicense {
+    outputs.file new File("$buildDir/LICENSE")
+    doLast {
+        copy {
+            //将LICENSE文件从项目的根目录复制到build目录下
+            from "LICENSE"  
+            into "$buildDir"
+        }
+    }
+}
+// Application插件在项目中设置了一个CopySpec属性，名为applicationDistribution。
+// 我们可以使用这个属性在已创建的二进制文件中加入许可证文件，步骤如下：
+// 使用CopySpec接口中的from()方法配置许可证文件的位置，将copyLicense任务的输出作为方法参数。
+// 使用CopySpec接口中into()方法配置target目录，将一个空的字符串作为参数调用方法。
+// 不设置下面的方法不会复制
+applicationDistribution.from(copyLicense) {
+    into ""
+}
+
+// 如果我们的配置项是被多项目构建中的所有项目所共享的，
+// 那么需要在根项目的build.gradle文件中添加以下片段：
+allprojects {
+    //Add configuration here
+}
+
 

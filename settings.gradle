@@ -1,0 +1,12 @@
+// 对包含在多项目构建中的项目进行配置
+
+// 我们可以通过以下步骤，对包含在多项目构建中的项目进行配置：
+
+// 在根项目的根目录下创建settings.gradle文件，一个多项目Gradle构建必须含有这个文件，因为它指明了那些包含在多项目构建中的项目。
+// 确保app和core项目包含在我们的多项目构建中。
+// 我们的settings.gradle文件如下：
+
+
+include 'app'
+include 'core'
+//include 'web-application'  尝试不成功

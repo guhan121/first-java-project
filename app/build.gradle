@@ -1,0 +1,32 @@
+apply plugin: 'application'
+
+//根项目已设置
+// apply plugin: java
+
+// 由于两个项目都是Java项目，因此它们都使用Java插件。
+// 两个项目都使用Maven2中央仓库(central Maven2 repository)。
+
+// repositories {
+// 	mavenCentral()
+// }
+
+dependencies {
+    compile 'log4j:log4j:1.2.17'
+    compile project(':core')
+}
+
+mainClassName = 'net.petrikainulainen.gradle.client.HelloWorld'
+
+task copyLicense {
+    outputs.file new File('$buildDir/LICENSE')
+    doLast {
+        copy {
+            from 'LICENSE'
+            into '$buildDir'
+        }
+    }
+}
+
+applicationDistribution.from(copyLicense) {
+    into ""
+}
